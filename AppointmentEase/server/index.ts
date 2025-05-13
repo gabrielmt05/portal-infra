@@ -18,7 +18,10 @@ const SESSION_SECRET = process.env.SESSION_SECRET || 'cockpit-portal-secret';
 // Use o armazenamento de sessão com PostgreSQL ou em memória, dependendo do ambiente
 let sessionStore;
 
-if (process.env.DATABASE_URL && process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL is not set in production. Falling back to memory store.');
+  }
   // Configuração do armazenamento de sessão com PostgreSQL
   const PgSession = connectPgSimple(session);
   sessionStore = new PgSession({
@@ -42,7 +45,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production', // Use HTTPS em produção
-    maxAge: ONE_DAY, // Sessão válida por 1 dia
+    maxAge: ONE_DAY, // Sessão válida por 1 dia,
     httpOnly: true,
   },
   name: 'cockpit.sid', // Nome do cookie
